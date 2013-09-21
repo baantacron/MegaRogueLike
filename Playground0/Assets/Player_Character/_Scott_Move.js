@@ -55,13 +55,13 @@ function Update () { // (includes jumping, and movement).
 	if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown('a')) // #Direction1
 		{
 			left = true; 
-			DirectionRotate();
+			//DirectionRotate();
 		}
 	
 	if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown('d')) // #Direction1
 		{
 			left = false;
-			DirectionRotate();
+			//DirectionRotate();
 		}
 
 // ==== Sword Swing ==== 
