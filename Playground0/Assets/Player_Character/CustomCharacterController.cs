@@ -1,13 +1,14 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Rigidbody))]
 public class CustomCharacterController : MonoBehaviour {
 	/* 
 	 * Things this handles:
 	 * -All player input
 	 * 	-Movement
 	 * 	-Jumping
-	 * 		-Double Jump
+	 * 		-"Mario" Jump (hold spacebar to jump higher)
 	 * 		-Gravity
 	 * 	-Attacking
 	 * 		-Shooting
@@ -18,6 +19,7 @@ public class CustomCharacterController : MonoBehaviour {
 	//Efficiency Variables
 	private Transform thisTransform;
 	private Rigidbody thisRigidbody;
+	//using camera to ensure that player moves along the camera's local x-axis (for best results, only rotate camera about y-axis)
 	private Transform cameraTransform;
 	
 	//Movement
@@ -36,7 +38,7 @@ public class CustomCharacterController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		movementSpeed = 15.0f;
-		jumpVelocity = 5.0f;
+		jumpVelocity = 10.0f;
 		maxSpeed = 20;
 		accelerationRate = 0.8f;
 		
@@ -53,47 +55,88 @@ public class CustomCharacterController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		//Movement
+		////Movement
 		//get player velocity in x-axis
 		Vector3 xVelocity = Vector3.Project(thisRigidbody.velocity, cameraTransform.right);
 		
 		if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 		{
-			//turn character image left
-			if(facingLeft == false)
+			//ground controls
+			if(grounded)
 			{
-				facingLeft = true;
+				//turn character image left
+				if(facingLeft == false)
+				{
+					facingLeft = true;
+					
+					//rotate character
+					
+					//stop player x movement
+					thisRigidbody.velocity -= xVelocity;
+				}
 				
-				//stop player x movement
+				//do movement
 				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			
-			//move left
-			thisRigidbody.velocity -= xVelocity;
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
+			//air controls
+			else
+			{
+				
+			}
 			
 		}
 		else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 		{
-			//turn character image left
-			if(facingLeft == true)
+			//ground controls
+			if(grounded)
 			{
-				facingLeft = false;
+				//turn character image left
+				if(facingLeft == true)
+				{
+					facingLeft = false;
+					
+					//rotate character
+					
+					//stop player x movement
+					thisRigidbody.velocity -= xVelocity;
+				}
 				
-				//stop player x movement
+				//do movement
 				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			
-			//move right
-			//thisRigidbody.velocity += cameraTransform.right * (movementSpeed * Time.deltaTime);
-			//thisRigidbody.velocity += cameraTransform.right * (Mathf.Lerp(thisRigidbody.velocity.x, maxSpeed, accelerationRate) * Time.deltaTime);
-			thisRigidbody.velocity -= xVelocity;
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
+			//air controls
+			else
+			{
+				
+			}
 		}
 		else	//no key is pressed
 		{
-			//stop player x movement
-			thisRigidbody.velocity -= xVelocity;
+			if(grounded)
+			{
+				//stop player x movement
+				thisRigidbody.velocity -= xVelocity;
+			}
 		}
+		
+		if(Input.GetKeyDown(KeyCode.Space))
+		{
+			//start jump
+			if(grounded)
+			{
+				thisRigidbody.velocity += new Vector3(0, jumpVelocity, 0);
+			}
+			
+		}
+		else if(Input.GetKeyUp(KeyCode.Space))
+		{
+			//stopping jump early
+			thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+		}
+		
+		
+		
 	}
 }
