@@ -23,13 +23,13 @@ public class CustomCharacterController : MonoBehaviour {
 	private Transform cameraTransform;
 	
 	//Movement
-	public float movementSpeed;
-	public float jumpVelocity;
-	public int maxSpeed;
-	public float accelerationRate;	//0 to 1
+	public float movementSpeed = 20f;
+	public float jumpVelocity = 10f;
+	public int maxSpeed = 20;
+	public float accelerationRate = 0.8f;	//0 to 1
 	
 	//Jumping
-	public static float gravity;
+	public static float gravity = 10f;
 	private bool grounded = true;
 	
 	//Attacking
@@ -37,14 +37,7 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		movementSpeed = 15.0f;
-		jumpVelocity = 10.0f;
-		maxSpeed = 20;
-		accelerationRate = 0.8f;
-		
-		//Mathf.Clamp(accelerationRate, 0, 1);
-		
-		gravity = 10.0f;
+		Mathf.Clamp(accelerationRate, 0, 1);
 		
 		//set efficiency variables
 		thisTransform = this.transform;
@@ -126,6 +119,7 @@ public class CustomCharacterController : MonoBehaviour {
 			//start jump
 			if(grounded)
 			{
+				grounded = false;
 				thisRigidbody.velocity += new Vector3(0, jumpVelocity, 0);
 			}
 			
@@ -138,5 +132,11 @@ public class CustomCharacterController : MonoBehaviour {
 		
 		
 		
+	}
+	
+	void OnCollisionEnter(Collision collided)
+	{
+		//dumb for now, lets you jump again whenever you collide with anything
+		grounded = true;
 	}
 }
