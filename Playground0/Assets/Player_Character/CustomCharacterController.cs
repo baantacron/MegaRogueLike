@@ -74,29 +74,21 @@ public class CustomCharacterController : MonoBehaviour {
 		}
 		else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 		{
-			//ground controls
-			if(grounded)
+			//ground controls (same as air controls)
+			//turn character image left
+			if(facingLeft == true)
 			{
-				//turn character image left
-				if(facingLeft == true)
-				{
-					facingLeft = false;
-					
-					//rotate character
-					
-					//stop player x movement
-					thisRigidbody.velocity -= xVelocity;
-				}
+				facingLeft = false;
 				
-				//do movement
+				//rotate character
+				
+				//stop player x movement
 				thisRigidbody.velocity -= xVelocity;
-				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			//air controls
-			else
-			{
-				
-			}
+			
+			//do movement
+			thisRigidbody.velocity -= xVelocity;
+			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
 		}
 		else	//no key is pressed
 		{
