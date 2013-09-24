@@ -31,6 +31,8 @@ public class CustomCharacterController : MonoBehaviour {
 	//Jumping
 	public static float gravity = 10f;
 	private bool grounded = true;
+	public float airMovementSpeed = 5f;
+	public float airAccelerationRate = 0.5f;
 	
 	//Attacking
 	private bool facingLeft = false;
@@ -54,41 +56,55 @@ public class CustomCharacterController : MonoBehaviour {
 		
 		if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 		{
-			//ground controls (same as air controls)
-			//turn character image left
-			if(facingLeft == false)
+			//ground controls
+			if(grounded == true)
 			{
-				facingLeft = true;
+				//turn character image left
+				if(facingLeft == false)
+				{
+					facingLeft = true;
+					
+					//rotate character
+					
+					//stop player x movement
+					thisRigidbody.velocity -= xVelocity;
+				}
 				
-				//rotate character
-				
-				//stop player x movement
+				//do movement
 				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			
-			//do movement
-			thisRigidbody.velocity -= xVelocity;
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
-			
-			
+			//air controls
+			else
+			{
+				//TODO
+			}
 		}
 		else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 		{
-			//ground controls (same as air controls)
-			//turn character image left
-			if(facingLeft == true)
+			//ground controls
+			if(grounded == true)
 			{
-				facingLeft = false;
+				//turn character image left
+				if(facingLeft == true)
+				{
+					facingLeft = false;
+					
+					//rotate character
+					
+					//stop player x movement
+					thisRigidbody.velocity -= xVelocity;
+				}
 				
-				//rotate character
-				
-				//stop player x movement
+				//do movement
 				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			
-			//do movement
-			thisRigidbody.velocity -= xVelocity;
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
+			//air controls
+			else
+			{
+				//TODO
+			}
 		}
 		else	//no key is pressed
 		{
