@@ -33,6 +33,8 @@ public class CustomCharacterController : MonoBehaviour {
 	private bool grounded = true;
 	public float airMovementSpeed = 5f;
 	public float airAccelerationRate = 0.5f;
+	private float minJumpXVelocity;
+	private float maxJumpXVelocity;
 	
 	//Attacking
 	private bool facingLeft = false;
@@ -45,6 +47,7 @@ public class CustomCharacterController : MonoBehaviour {
 		thisTransform = this.transform;
 		thisRigidbody = this.rigidbody;
 		cameraTransform = Camera.mainCamera.transform;
+		
 	}
 	
 	// Update is called once per frame
@@ -54,10 +57,11 @@ public class CustomCharacterController : MonoBehaviour {
 		//get player velocity in x-axis
 		Vector3 xVelocity = Vector3.Project(thisRigidbody.velocity, cameraTransform.right);
 		
-		if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+		//ground controls
+		if(grounded == true)
 		{
-			//ground controls
-			if(grounded == true)
+			//walk left
+			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 			{
 				//turn character image left
 				if(facingLeft == false)
@@ -73,17 +77,10 @@ public class CustomCharacterController : MonoBehaviour {
 				//do movement
 				thisRigidbody.velocity -= xVelocity;
 				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
+				
 			}
-			//air controls
-			else
-			{
-				//TODO
-			}
-		}
-		else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-		{
-			//ground controls
-			if(grounded == true)
+			//walk right
+			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
 				//turn character image left
 				if(facingLeft == true)
@@ -100,35 +97,63 @@ public class CustomCharacterController : MonoBehaviour {
 				thisRigidbody.velocity -= xVelocity;
 				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
 			}
-			//air controls
+			//not moving left or right
 			else
-			{
-				//TODO
-			}
-		}
-		else	//no key is pressed
-		{
-			if(grounded)
 			{
 				//stop player x movement
 				thisRigidbody.velocity -= xVelocity;
 			}
-		}
-		
-		if(Input.GetKeyDown(KeyCode.Space))
-		{
+			
 			//start jump
-			if(grounded)
+			if(Input.GetKeyDown(KeyCode.Space))
 			{
 				grounded = false;
 				thisRigidbody.velocity += new Vector3(0, jumpVelocity, 0);
 			}
-			
 		}
-		else if(Input.GetKeyUp(KeyCode.Space))
+		else	//grounded == false
 		{
-			//stopping jump early
-			thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+			//move left in the air
+			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+			{
+				//turn character image left
+				if(facingLeft == false)
+				{
+					facingLeft = true;
+					
+					//rotate character
+					
+					//don't stop player x movement
+				}
+				
+				//do movement
+				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), (accelerationRate/3f) * Time.deltaTime);
+				
+			}
+			//move right in the air
+			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+			{
+				//turn character image left
+				if(facingLeft == true)
+				{
+					facingLeft = false;
+					
+					//rotate character
+					
+					//don't stop player x movement
+				}
+				
+				//do movement
+				thisRigidbody.velocity -= xVelocity;
+				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), (accelerationRate/3f) * Time.deltaTime);
+			}
+			
+			if(Input.GetKeyUp(KeyCode.Space))
+			{
+				//stopping jump early
+				thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+			}
 		}
 		
 		
