@@ -24,24 +24,21 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	//Movement
 	public float movementSpeed = 20f;
-	public float jumpVelocity = 10f;
-	public int maxSpeed = 20;
 	public float accelerationRate = 0.8f;	//0 to 1
 	
 	//Jumping
+	public float jumpVelocity = 10f;
 	public static float gravity = 10f;
-	private bool grounded = true;
-	public float airMovementSpeed = 5f;
-	public float airAccelerationRate = 0.5f;
-	private float minJumpXVelocity;
-	private float maxJumpXVelocity;
+	public float airAccelerationRate = 0.3f;	//0 to 1
 	
-	//Attacking
+	//Movement & Jumping
+	private bool grounded = true;
 	private bool facingLeft = false;
+	
 	
 	// Use this for initialization
 	void Start () {
-		Mathf.Clamp(accelerationRate, 0, 1);
+		//Mathf.Clamp(accelerationRate, 0, 1);
 		
 		//set efficiency variables
 		thisTransform = this.transform;
@@ -57,45 +54,18 @@ public class CustomCharacterController : MonoBehaviour {
 		//get player velocity in x-axis
 		Vector3 xVelocity = Vector3.Project(thisRigidbody.velocity, cameraTransform.right);
 		
-		//ground controls
+		//---------------------------------------------ground controls---------------------------------------------
 		if(grounded == true)
 		{
 			//walk left
 			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 			{
-				//turn character image left
-				if(facingLeft == false)
-				{
-					facingLeft = true;
-					
-					//rotate character
-					
-					//stop player x movement
-					thisRigidbody.velocity -= xVelocity;
-				}
-				
-				//do movement
-				thisRigidbody.velocity -= xVelocity;
-				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), accelerationRate * Time.deltaTime);
-				
+				MoveHorizontal(accelerationRate, true, xVelocity);
 			}
 			//walk right
 			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
-				//turn character image left
-				if(facingLeft == true)
-				{
-					facingLeft = false;
-					
-					//rotate character
-					
-					//stop player x movement
-					thisRigidbody.velocity -= xVelocity;
-				}
-				
-				//do movement
-				thisRigidbody.velocity -= xVelocity;
-				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), accelerationRate * Time.deltaTime);
+				MoveHorizontal(accelerationRate, false, xVelocity);
 			}
 			//not moving left or right
 			else
@@ -111,42 +81,18 @@ public class CustomCharacterController : MonoBehaviour {
 				thisRigidbody.velocity += new Vector3(0, jumpVelocity, 0);
 			}
 		}
+		//---------------------------------------------air controls---------------------------------------------
 		else	//grounded == false
 		{
 			//move left in the air
 			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 			{
-				//turn character image left
-				if(facingLeft == false)
-				{
-					facingLeft = true;
-					
-					//rotate character
-					
-					//don't stop player x movement
-				}
-				
-				//do movement
-				thisRigidbody.velocity -= xVelocity;
-				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), (accelerationRate/3f) * Time.deltaTime);
-				
+				MoveHorizontal(airAccelerationRate, true, xVelocity);
 			}
 			//move right in the air
 			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
-				//turn character image left
-				if(facingLeft == true)
-				{
-					facingLeft = false;
-					
-					//rotate character
-					
-					//don't stop player x movement
-				}
-				
-				//do movement
-				thisRigidbody.velocity -= xVelocity;
-				thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), (accelerationRate/3f) * Time.deltaTime);
+				MoveHorizontal(airAccelerationRate, false, xVelocity);
 			}
 			
 			if(Input.GetKeyUp(KeyCode.Space))
@@ -164,5 +110,25 @@ public class CustomCharacterController : MonoBehaviour {
 	{
 		//dumb for now, lets you jump again whenever you collide with anything
 		grounded = true;
+	}
+	
+	void MoveHorizontal(float acceleration, bool toMoveLeft, Vector3 xVelocity)
+	{
+		//turn character image left
+		if(facingLeft != toMoveLeft)
+		{
+			facingLeft = toMoveLeft;
+			
+			//rotate character
+			
+			//don't stop player x movement
+		}
+		
+		//do movement
+		thisRigidbody.velocity -= xVelocity;
+		if(toMoveLeft == true)
+			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), airAccelerationRate * Time.deltaTime);
+		else
+			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), airAccelerationRate * Time.deltaTime);
 	}
 }
