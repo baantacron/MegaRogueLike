@@ -38,7 +38,7 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		//Mathf.Clamp(accelerationRate, 0, 1);
+		Mathf.Clamp(accelerationRate, 0, 1);
 		
 		//set efficiency variables
 		thisTransform = this.transform;
@@ -50,7 +50,7 @@ public class CustomCharacterController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		////Movement
+		//+++++++++++++++++++++++++++++++++++++++++++++Movement+++++++++++++++++++++++++++++++++++++++++++++
 		//get player velocity in x-axis
 		Vector3 xVelocity = Vector3.Project(thisRigidbody.velocity, cameraTransform.right);
 		
@@ -97,13 +97,17 @@ public class CustomCharacterController : MonoBehaviour {
 			
 			if(Input.GetKeyUp(KeyCode.Space))
 			{
-				//stopping jump early
-				thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+				//stopping jump early (if still ascending, slow ascent)
+				if(thisRigidbody.velocity.y > 0)
+				{
+					thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+				}
 			}
 		}
 		
 		
-		
+		//+++++++++++++++++++++++++++++++++++++++++++++Shooting+++++++++++++++++++++++++++++++++++++++++++++
+		 
 	}
 	
 	void OnCollisionEnter(Collision collided)
@@ -127,8 +131,12 @@ public class CustomCharacterController : MonoBehaviour {
 		//do movement
 		thisRigidbody.velocity -= xVelocity;
 		if(toMoveLeft == true)
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), airAccelerationRate * Time.deltaTime);
+		{
+			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), acceleration * Time.deltaTime);
+		}
 		else
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), airAccelerationRate * Time.deltaTime);
+		{
+			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), acceleration * Time.deltaTime);
+		}
 	}
 }
