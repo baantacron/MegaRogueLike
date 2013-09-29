@@ -9,6 +9,7 @@ public class CustomCharacterController : MonoBehaviour {
 	 * 	-Movement
 	 * 	-Jumping
 	 * 		-"Mario" Jump (hold spacebar to jump higher)
+	 * 		-Ignore above! Now is the era of Megaman X jump
 	 * 		-Gravity
 	 * 	-Attacking
 	 * 		-Shooting
@@ -24,12 +25,12 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	//Movement
 	public float movementSpeed = 20f;
-	public float accelerationRate = 0.8f;	//0 to 1
+	private float accelerationRate = 1f;	//0 to 1
 	
 	//Jumping
 	public float jumpVelocity = 10f;
 	public static float gravity = 10f;
-	public float airAccelerationRate = 0.3f;	//0 to 1
+	private float airAccelerationRate = 1f;	//0 to 1
 	
 	//Movement & Jumping
 	private bool grounded = true;
