@@ -119,7 +119,7 @@ public class CustomCharacterController : MonoBehaviour {
 		
 		//---------------------------------------------(ground || air) movement---------------------------------------------
 		//not moving left or right
-		if(Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.RightArrow))
+		if(Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.D))
 		{
 			//stop player x movement
 			thisRigidbody.velocity -= xVelocity;
