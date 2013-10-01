@@ -29,11 +29,11 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	//Jumping
 	public float jumpVelocity = 10f;
-	public static float gravity = 10f;
+	public float gravity = 10f;
 	private float airAccelerationRate = 1f;	//0 to 1
 	
 	//Movement & Jumping
-	private bool grounded = true;
+	private bool grounded = false;
 	private bool facingLeft = false;
 	
 	
@@ -44,7 +44,10 @@ public class CustomCharacterController : MonoBehaviour {
 		//set efficiency variables
 		thisTransform = this.transform;
 		thisRigidbody = this.rigidbody;
-		cameraTransform = Camera.mainCamera.transform;
+		cameraTransform = Camera.main.transform;
+		
+		//using custom gravity
+		thisRigidbody.useGravity = false;
 		
 	}
 	
@@ -61,12 +64,12 @@ public class CustomCharacterController : MonoBehaviour {
 			//walk left
 			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 			{
-				MoveHorizontal(accelerationRate, true, xVelocity);
+				AccelerateHorizontal(accelerationRate, true, xVelocity, movementSpeed, Time.deltaTime);
 			}
 			//walk right
 			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
-				MoveHorizontal(accelerationRate, false, xVelocity);
+				AccelerateHorizontal(accelerationRate, false, xVelocity, movementSpeed, Time.deltaTime);
 			}
 			//not moving left or right
 			else
@@ -88,12 +91,12 @@ public class CustomCharacterController : MonoBehaviour {
 			//move left in the air
 			if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 			{
-				MoveHorizontal(airAccelerationRate, true, xVelocity);
+				AccelerateHorizontal(airAccelerationRate, true, xVelocity, movementSpeed, Time.deltaTime);
 			}
 			//move right in the air
 			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
-				MoveHorizontal(airAccelerationRate, false, xVelocity);
+				AccelerateHorizontal(airAccelerationRate, false, xVelocity, movementSpeed, Time.deltaTime);
 			}
 			
 			if(Input.GetKeyUp(KeyCode.Space))
@@ -102,6 +105,20 @@ public class CustomCharacterController : MonoBehaviour {
 				if(thisRigidbody.velocity.y > 0)
 				{
 					thisRigidbody.velocity -= new Vector3(0, thisRigidbody.velocity.y/2, 0);
+				}
+			}
+			
+			//new gravity system: caps max falling speed to be same as max jumping speed
+			if(thisRigidbody.velocity.y > -jumpVelocity)
+			{
+				if(thisRigidbody.velocity.y < -gravity)
+				{
+					//just a check against max speed
+					thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, -jumpVelocity, thisRigidbody.velocity.z);
+				}
+				else
+				{
+					thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, thisRigidbody.velocity.y - (gravity * Time.deltaTime), thisRigidbody.velocity.z);
 				}
 			}
 		}
@@ -115,9 +132,18 @@ public class CustomCharacterController : MonoBehaviour {
 	{
 		//dumb for now, lets you jump again whenever you collide with anything
 		grounded = true;
+		
 	}
 	
-	void MoveHorizontal(float acceleration, bool toMoveLeft, Vector3 xVelocity)
+	/*
+	 * Function: MoveHorizontal
+	 * Returns: None
+	 * Arguments:
+	 * 		speed : velocity at which the target should move
+	 * 		toMoveLeft : moving left? true. moving right? false.
+	 * 		horizontalVelocity : player's current velocity in the direction of the main camera's x-axis
+	 */
+	void MoveHorizontal(float speed, bool toMoveLeft, Vector3 horizontalVelocity)
 	{
 		//turn character image left
 		if(facingLeft != toMoveLeft)
@@ -130,14 +156,43 @@ public class CustomCharacterController : MonoBehaviour {
 		}
 		
 		//do movement
-		thisRigidbody.velocity -= xVelocity;
+		thisRigidbody.velocity -= horizontalVelocity;
+		horizontalVelocity = horizontalVelocity.normalized;
+		horizontalVelocity *= speed * Time.deltaTime;
+		thisRigidbody.velocity += horizontalVelocity;
+	}
+	
+	
+	/*
+	 * Function: AccelerateHorizontal
+	 * Returns: None
+	 * Arguments:
+	 * 		acceleration : rate at which velocity will be increased towards maxSpeed
+	 * 		toMoveLeft : moving left? true. moving right? false.
+	 * 		horizontalVelocity : player's current velocity in the direction of the main camera's x-axis
+	 * 		maxSpeed : maximum speed to move
+	 */
+	void AccelerateHorizontal(float acceleration, bool toMoveLeft, Vector3 horizontalVelocity, float maxSpeed, float timeStep)
+	{
+		//turn character image left
+		if(facingLeft != toMoveLeft)
+		{
+			facingLeft = toMoveLeft;
+			
+			//rotate character
+			
+			//don't stop player x movement
+		}
+		
+		//do movement
+		thisRigidbody.velocity -= horizontalVelocity;
 		if(toMoveLeft == true)
 		{
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * -movementSpeed), acceleration * Time.deltaTime);
+			thisRigidbody.velocity += Vector3.Lerp(horizontalVelocity, (cameraTransform.right * -maxSpeed), acceleration * timeStep * maxSpeed);
 		}
 		else
 		{
-			thisRigidbody.velocity += Vector3.Lerp(xVelocity, (cameraTransform.right * movementSpeed), acceleration * Time.deltaTime);
+			thisRigidbody.velocity += Vector3.Lerp(horizontalVelocity, (cameraTransform.right * maxSpeed), acceleration * timeStep * maxSpeed);
 		}
 	}
 }
