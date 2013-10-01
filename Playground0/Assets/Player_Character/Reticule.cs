@@ -20,6 +20,9 @@ public class Reticule : MonoBehaviour {
 	//if your reticule's up should be facing the camera, set this to true
 	public bool upIsForward = false;
 	
+	//controls if the reticule will rotate to face the camera (true = does not rotate)
+	public bool perspective = true;
+	
 	// Use this for initialization
 	void Start () {
 		if(reticule == null)
@@ -36,11 +39,14 @@ public class Reticule : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		//Make sure reticule is facing camera
-		reticuleTransform.LookAt(cameraTransform.position);
-		if(upIsForward)
+		if(perspective == false)
 		{
-			reticuleTransform.Rotate(reticuleTransform.right, PI/2);
+			//Make sure reticule is facing camera
+			reticuleTransform.LookAt(cameraTransform.position);
+			if(upIsForward)
+			{
+				reticuleTransform.Rotate(reticuleTransform.right, PI/2);
+			}
 		}
 		
 		//move reticlue to mouse

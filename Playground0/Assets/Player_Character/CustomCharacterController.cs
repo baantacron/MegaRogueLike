@@ -54,7 +54,7 @@ public class CustomCharacterController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		
-		//+++++++++++++++++++++++++++++++++++++++++++++Movement+++++++++++++++++++++++++++++++++++++++++++++
+		//++++++++++++++++++++++++++++++++++++++++++++++++Movement++++++++++++++++++++++++++++++++++++++++++++++++
 		//get player velocity in x-axis
 		Vector3 xVelocity = Vector3.Project(thisRigidbody.velocity, cameraTransform.right);
 		
@@ -70,12 +70,6 @@ public class CustomCharacterController : MonoBehaviour {
 			else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 			{
 				AccelerateHorizontal(accelerationRate, false, xVelocity, movementSpeed, Time.deltaTime);
-			}
-			//not moving left or right
-			else
-			{
-				//stop player x movement
-				thisRigidbody.velocity -= xVelocity;
 			}
 			
 			//start jump
@@ -123,8 +117,16 @@ public class CustomCharacterController : MonoBehaviour {
 			}
 		}
 		
+		//---------------------------------------------(ground || air) movement---------------------------------------------
+		//not moving left or right
+		if(Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.RightArrow))
+		{
+			//stop player x movement
+			thisRigidbody.velocity -= xVelocity;
+		}
 		
-		//+++++++++++++++++++++++++++++++++++++++++++++Shooting+++++++++++++++++++++++++++++++++++++++++++++
+		
+		//++++++++++++++++++++++++++++++++++++++++++++++++Shooting++++++++++++++++++++++++++++++++++++++++++++++++
 		 
 	}
 	
