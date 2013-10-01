@@ -14,14 +14,24 @@ public class Reticule : MonoBehaviour {
 	//set this in inspector for your reticule
 	public GameObject reticule;
 	
+	//move reticule closer or further from the camera
+	public float distanceFromNearClip;
+	
 	//if your reticule's up should be facing the camera, set this to true
 	public bool upIsForward = false;
 	
 	// Use this for initialization
 	void Start () {
-		this.enabled = true;
-		reticuleTransform = reticule.transform;
-		cameraTransform = Camera.main.transform;
+		if(reticule == null)
+		{
+			this.enabled = false;
+		}
+		else
+		{
+			this.enabled = true;
+			reticuleTransform = reticule.transform;
+			cameraTransform = Camera.main.transform;
+		}
 	}
 	
 	// Update is called once per frame
@@ -30,11 +40,11 @@ public class Reticule : MonoBehaviour {
 		reticuleTransform.LookAt(cameraTransform.position);
 		if(upIsForward)
 		{
-			reticuleTransform.RotateAround(reticuleTransform.right, PI/2);
+			reticuleTransform.Rotate(reticuleTransform.right, PI/2);
 		}
 		
 		//move reticlue to mouse
-		reticuleTransform.position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane+0.01f));
+		reticuleTransform.position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane+distanceFromNearClip));
 		//note: it's gonna be really close to the camera so make it small
 		
 	}
