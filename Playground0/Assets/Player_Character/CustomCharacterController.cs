@@ -132,9 +132,21 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	void OnCollisionEnter(Collision collided)
 	{
-		//dumb for now, lets you jump again whenever you collide with anything
-		grounded = true;
-		
+		//checking if we collided on our feet, on the floor
+		if(collided.contacts.Length > 0)	//check to make sure it wasn't destroyed or something
+		{
+			for(int i = 0; i < collided.contacts.Length; i++)
+			{
+				ContactPoint contact = collided.contacts[i];
+				if(Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
+				{
+					//also make sure to check if it is a floor when tags are implemented
+					
+					//landed on feet (hmmmmmm)
+					grounded = true;
+				}
+			}
+		}
 	}
 	
 	/*
@@ -145,7 +157,7 @@ public class CustomCharacterController : MonoBehaviour {
 	 * 		toMoveLeft : moving left? true. moving right? false.
 	 * 		horizontalVelocity : player's current velocity in the direction of the main camera's x-axis
 	 */
-	void MoveHorizontal(float speed, bool toMoveLeft, Vector3 horizontalVelocity)
+	private void MoveHorizontal(float speed, bool toMoveLeft, Vector3 horizontalVelocity)
 	{
 		//turn character image left
 		if(facingLeft != toMoveLeft)
