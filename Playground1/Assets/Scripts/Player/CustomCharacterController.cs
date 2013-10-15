@@ -34,6 +34,10 @@ public class CustomCharacterController : MonoBehaviour {
 	public float gravity = 35f;
 	private float airAccelerationRate = 1f;	//0 to 1
 	
+	//WallJumping
+	public enum MoveState {Standing, Running, JumpingAscent, Falling, WallStuck, ERROR};
+	private MoveState m_MoveState;
+	
 	//Movement & Jumping
 	private bool grounded = false;
 	private bool facingLeft = false;
@@ -50,6 +54,9 @@ public class CustomCharacterController : MonoBehaviour {
 		
 		//using custom gravity
 		thisRigidbody.useGravity = false;
+		
+		//initialize player as airborne and let them fall.
+		m_MoveState = MoveState.Falling;
 		
 	}
 	
@@ -136,7 +143,7 @@ public class CustomCharacterController : MonoBehaviour {
 		if(collided.gameObject.tag == groundTag)
 		{
 			//checking if we collided on our feet, on the floor
-			if(collided.contacts.Length > 0)	//check to make sure it wasn't destroyed or something
+			if(collided.contacts.Length > 0)	//check to make sure it wasn't already destroyed or something
 			{
 				for(int i = 0; i < collided.contacts.Length; i++)
 				{
@@ -145,12 +152,38 @@ public class CustomCharacterController : MonoBehaviour {
 					{
 						//also make sure to check if it is a floor when tags are implemented
 						
-						//landed on feet (hmmmmmm)
+						//landed on feet
 						grounded = true;
+						break;
 					}
 				}
 			}
 		}
+		else if(collided.gameObject.tag == wallTag)
+		{
+			//make sure we collide with walls to the sides of the player
+			if(collided.contacts.Length > 0)
+			{
+				for(int i = 0; i < collided.contacts.Length; i++)
+				{
+					ContactPoint contact = collided.contacts[i];
+					float dotProd = Vector3.Dot(contact.normal, Vector3.up);
+					if(Mathf.Abs(dotProd) < 0.5f)
+					{
+						if(dotProd < 0)
+						{
+							//wall on right, face left
+							
+						}
+						else
+						{
+							//wall on left, face right
+						}
+					}
+				}
+			}
+		}
+		
 	}
 	
 	void OnCollisionExit(Collision collided)
