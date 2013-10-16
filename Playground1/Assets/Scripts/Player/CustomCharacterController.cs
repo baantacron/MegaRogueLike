@@ -42,6 +42,9 @@ public class CustomCharacterController : MonoBehaviour {
 	private bool grounded = false;
 	private bool facingLeft = false;
 	
+	//Shooting
+	public GameObject bullet;
+	
 	
 	// Use this for initialization
 	void Start () {
@@ -135,7 +138,16 @@ public class CustomCharacterController : MonoBehaviour {
 		}
 		
 		//++++++++++++++++++++++++++++++++++++++++++++++++Shooting++++++++++++++++++++++++++++++++++++++++++++++++
-		 
+		if(Input.GetMouseButton(0))
+		{
+			//mouse-controlled shooting: shoot at position of click
+			Vector3 target = new Vector3(Input.mousePosition.x, Input.mousePosition.y, thisTransform.position.z);
+			target -= thisTransform.position;
+			target = Vector3.Normalize(target);
+			
+			
+			//TODO: bullet manager
+		}
 	}
 	
 	void OnCollisionEnter(Collision collided)
@@ -190,10 +202,19 @@ public class CustomCharacterController : MonoBehaviour {
 	{
 		if(collided.gameObject.tag == groundTag)
 		{
-			if(grounded == true)
+			//checking if we just left the floor, not a wall
+			if(collided.contacts.Length > 0)	//check to make sure it wasn't already destroyed or something
 			{
-				//just left the ground, but not set to grounded
-				grounded = false;
+				for(int i = 0; i < collided.contacts.Length; i++)
+				{
+					ContactPoint contact = collided.contacts[i];
+					if(Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
+					{
+						//left the floor
+						grounded = false;
+						break;
+					}
+				}
 			}
 		}
 	}
