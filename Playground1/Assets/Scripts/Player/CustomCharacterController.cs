@@ -44,7 +44,7 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	//Shooting
 	public GameObject bullet;
-	
+	public float bulletSpeed = 1f;
 	
 	// Use this for initialization
 	void Start () {
@@ -138,13 +138,24 @@ public class CustomCharacterController : MonoBehaviour {
 		}
 		
 		//++++++++++++++++++++++++++++++++++++++++++++++++Shooting++++++++++++++++++++++++++++++++++++++++++++++++
-		if(Input.GetMouseButton(0))
+		if(Input.GetMouseButtonDown(0))
 		{
 			//mouse-controlled shooting: shoot at position of click
 			Vector3 target = new Vector3(Input.mousePosition.x, Input.mousePosition.y, thisTransform.position.z);
-			target -= thisTransform.position;
+			target = Camera.main.ScreenToWorldPoint(target);
+			target -= Camera.main.transform.position;
+			target.z = 0;
+			//target += thisTransform.position;
 			target = Vector3.Normalize(target);
+			GameObject newBullet = (GameObject)Instantiate(bullet);
+			newBullet.transform.position = thisTransform.position;
+			Bullet bulletScript = (Bullet)(newBullet.GetComponent(typeof(Bullet)));
+			if(!facingLeft)
+				bulletScript.m_speed = bulletSpeed;
+			else
+				bulletScript.m_speed = bulletSpeed;
 			
+			bulletScript.m_direction = target;
 			
 			//TODO: bullet manager
 		}
@@ -152,6 +163,7 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	void OnCollisionEnter(Collision collided)
 	{
+		//landing on ground
 		if(collided.gameObject.tag == groundTag)
 		{
 			//checking if we collided on our feet, on the floor
@@ -171,6 +183,7 @@ public class CustomCharacterController : MonoBehaviour {
 				}
 			}
 		}
+		//wall jumping
 		else if(collided.gameObject.tag == wallTag)
 		{
 			//make sure we collide with walls to the sides of the player
