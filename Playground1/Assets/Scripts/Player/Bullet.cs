@@ -9,8 +9,8 @@ public class Bullet : MonoBehaviour {
 	public Vector3 m_direction;
 	
 	//die after a bit
-	public float m_timeToLive = 3f;
-	private float t_timeToDie;
+	public float u_timeToLive = 3f;
+	private float m_timeToDie;
 	
 	//efficiency variables
 	private Transform thisTransform;
@@ -23,7 +23,7 @@ public class Bullet : MonoBehaviour {
 		thisRigidbody = this.rigidbody;
 		thisRigidbody.useGravity = false;
 		
-		t_timeToDie = Time.time + m_timeToLive;
+		m_timeToDie = Time.time + u_timeToLive;
 		
 		//handle facing
 	}
@@ -32,7 +32,7 @@ public class Bullet : MonoBehaviour {
 	void Update () {
 		thisTransform.position += m_direction * m_speed;
 		
-		if(Time.time >= t_timeToDie)
+		if(Time.time >= m_timeToDie)
 		{
 			Destroy(this.gameObject);
 		}

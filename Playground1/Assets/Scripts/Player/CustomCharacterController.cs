@@ -21,6 +21,11 @@ public class CustomCharacterController : MonoBehaviour {
 	private Transform thisTransform;
 	private Rigidbody thisRigidbody;
 	private Vector3 m_velocity;		//alternative to thisRigidbody.velocity
+	
+	//for collisions
+	private float m_halfHeight;
+	private float m_dProdLimit;
+	
 	//using camera to ensure that player moves along the camera's local x-axis (for best results, only rotate camera about y-axis)
 	private Transform cameraTransform;
 	public string u_groundTag = "Ground";
@@ -29,6 +34,7 @@ public class CustomCharacterController : MonoBehaviour {
 	//Movement
 	public float u_movementSpeed = 10f;
 	private float u_accelerationRate = 1f;	//0 to 1
+	private Vector3 m_horizontalR;
 	
 	//Jumping
 	public float u_jumpVelocity = 15f;
@@ -79,6 +85,13 @@ public class CustomCharacterController : MonoBehaviour {
 		
 		m_hasControl = true;
 		
+		//set up collision helpers
+		m_halfHeight = ((BoxCollider)(this.collider)).size.y * thisTransform.localScale.y;
+		Vector3 utilVect = new Vector3(((BoxCollider)(this.collider)).size.x * thisTransform.localScale.x / 2f, ((BoxCollider)(this.collider)).size.y * thisTransform.localScale.y / 2f, 0);
+		utilVect = utilVect.normalized;
+		m_dProdLimit = utilVect.y;
+		
+		
 	}
 	
 	// Update is called once per frame
@@ -98,11 +111,19 @@ public class CustomCharacterController : MonoBehaviour {
 				//walk left
 				if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
 				{
+					if(thisRigidbody.velocity.y != 0)
+					{
+						thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, 0, thisRigidbody.velocity.z);
+					}
 					AccelerateHorizontal(u_accelerationRate, true, xVelocity, u_movementSpeed, Time.deltaTime);
 				}
 				//walk right
 				else if(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
 				{
+					if(thisRigidbody.velocity.y != 0)
+					{
+						thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, 0, thisRigidbody.velocity.z);
+					}
 					AccelerateHorizontal(u_accelerationRate, false, xVelocity, u_movementSpeed, Time.deltaTime);
 				}
 				else
@@ -118,6 +139,24 @@ public class CustomCharacterController : MonoBehaviour {
 					m_MoveState = MoveState.Airborne;
 				}
 			}
+			
+			RaycastHit raycast = new RaycastHit();
+			if(Physics.Raycast(thisTransform.position, -cameraTransform.up, out raycast, m_halfHeight))
+			{
+				//check for angled platform
+				Vector3 normal = raycast.normal;
+				
+				//get vector perpendicular to normal
+				//normal = Quaternion.AngleAxis(
+				
+			}
+			else
+			{
+				//fall
+				m_MoveState = MoveState.Airborne;
+			}
+			
+			
 		}
 		//---------------------------------------------air controls---------------------------------------------
 		else if(m_MoveState == MoveState.Airborne)
@@ -147,15 +186,7 @@ public class CustomCharacterController : MonoBehaviour {
 				}
 			}
 			
-			//new gravity system: caps max falling speed to be same as max jumping speed
-			if(thisRigidbody.velocity.y > -u_jumpVelocity)
-			{
-				thisRigidbody.velocity += new Vector3(0, -u_gravity, 0);
-			}
-			if(thisRigidbody.velocity.y <= -u_jumpVelocity)
-			{
-				thisRigidbody.velocity = new Vector3(0, -u_jumpVelocity, 0);
-			}
+			ApplyGravity(u_jumpVelocity, u_gravity);
 		}
 		//---------------------------------------------wallslide controls---------------------------------------------
 		else if(m_MoveState == MoveState.WallStuck)
@@ -163,14 +194,7 @@ public class CustomCharacterController : MonoBehaviour {
 			print("State = WallStuck");
 			
 			//for now, just apply gravity
-			if(thisRigidbody.velocity.y > -u_jumpVelocity/2f)
-			{
-				thisRigidbody.velocity += new Vector3(0,  -(u_gravity * Time.deltaTime), 0);
-			}
-			else	//velocity.y <= -jumpVel
-			{
-				thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, -u_jumpVelocity/2f, thisRigidbody.velocity.z);
-			}
+			ApplyGravity(u_jumpVelocity/4f, u_gravity/4f);
 			
 			//wall jump
 			if(Input.GetKeyDown(KeyCode.Space))
@@ -186,17 +210,6 @@ public class CustomCharacterController : MonoBehaviour {
 					thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x + u_wallJumpBoost, u_jumpVelocity, thisRigidbody.velocity.z);
 				}
 				m_MoveState = MoveState.Airborne;
-			}
-		}
-		
-		//---------------------------------------------(ground || air) movement---------------------------------------------
-		if(m_MoveState == MoveState.Grounded || m_MoveState == MoveState.Airborne)
-		{
-			//not moving left or right
-			if(Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.D))
-			{
-				//stop player x movement
-				thisRigidbody.velocity -= xVelocity;
 			}
 		}
 		
@@ -226,106 +239,49 @@ public class CustomCharacterController : MonoBehaviour {
 	
 	void OnCollisionEnter(Collision collided)
 	{
-		//landing on ground
+		//hit part of environment (ground or wall)
 		if(collided.gameObject.tag == u_groundTag || collided.gameObject.tag == u_wallTag)
 		{
-			//don't need to waste time re-grounding ourself
-			if(m_MoveState != MoveState.Grounded)
+			
+			//find out where we were hit
+			ContactPoint contact = collided.contacts[0];
+			float dotProd = Vector3.Dot(contact.normal, Vector3.up);
+			if(dotProd > m_dProdLimit)
 			{
-				//checking if we collided on our feet, on the floor
-				if(collided.contacts.Length > 0)	//check to make sure it wasn't already destroyed or something
+				//feet collision
+				if(m_MoveState != MoveState.Grounded)
 				{
-					for(int i = 0; i < collided.contacts.Length; i++)
-					{
-						ContactPoint contact = collided.contacts[i];
-						if(Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
-						{
-							//landed on feet
-							m_MoveState = MoveState.Grounded;
-							break;
-						}
-					}
+					//collided with ground at feet, so ground self
+					m_MoveState = MoveState.Grounded;
 					
-					//making the tagging between wall and graound irrelevant
-					for(int i = 0; i < collided.contacts.Length; i++)
-					{
-						ContactPoint contact = collided.contacts[i];
-						float dotProd = Vector3.Dot(contact.normal, Vector3.up);
-						if(Mathf.Abs(dotProd) < 0.5f)
-						{
-							//collided with the side of a platform, activate wallslide
-							m_MoveState = MoveState.WallStuck;
-							break;
-						}
-					}
 				}
 			}
-			//can only start walljumping when you're in the air (and not already walljumping)
-			else if(m_MoveState == MoveState.Airborne)
+			else if(Mathf.Abs(dotProd) <= m_dProdLimit)
 			{
-				//make sure we collide with walls to the sides of the player
-				if(collided.contacts.Length > 0)
+				//side collision
+				if(m_MoveState == MoveState.Airborne)
 				{
-					for(int i = 0; i < collided.contacts.Length; i++)
+					//start wallstuck
+					if(contact.normal.x < 0)
 					{
-						ContactPoint contact = collided.contacts[i];
-						float dotProd = Vector3.Dot(contact.normal, Vector3.up);
-						if(Mathf.Abs(dotProd) < 0.5f)
-						{
-							if(dotProd < 0)
-							{
-								//wall on right, face left
-								m_MoveState = MoveState.WallStuck;
-								m_facingLeft = true;
-								break;
-							}
-							else
-							{
-								//wall on left, face right
-								m_MoveState = MoveState.WallStuck;
-								m_facingLeft = false;
-								break;
-							}
-						}
+						//wall on right, face left
+						m_MoveState = MoveState.WallStuck;
+						m_facingLeft = true;
 					}
+					else
+					{
+						//wall on left, face right
+						m_MoveState = MoveState.WallStuck;
+						m_facingLeft = false;
+					}	
 				}
+			}
+			else
+			{
+				//head collision
+				Debug.Log("Bonk");
 			}
 		}
-		//wall jumping
-		/*else if(collided.gameObject.tag == u_wallTag)
-		{
-			//can only start walljumping when you're in the air (and not already walljumping)
-			if(m_MoveState == MoveState.Airborne)
-			{
-				//make sure we collide with walls to the sides of the player
-				if(collided.contacts.Length > 0)
-				{
-					for(int i = 0; i < collided.contacts.Length; i++)
-					{
-						ContactPoint contact = collided.contacts[i];
-						float dotProd = Vector3.Dot(contact.normal, Vector3.up);
-						if(Mathf.Abs(dotProd) < 0.5f)
-						{
-							if(dotProd < 0)
-							{
-								//wall on right, face left
-								m_MoveState = MoveState.WallStuck;
-								m_facingLeft = true;
-								break;
-							}
-							else
-							{
-								//wall on left, face right
-								m_MoveState = MoveState.WallStuck;
-								m_facingLeft = false;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}*/
-		
 	}
 	
 	void OnCollisionExit(Collision collided)
@@ -372,32 +328,13 @@ public class CustomCharacterController : MonoBehaviour {
 		{
 			m_MoveState = MoveState.Airborne;
 		}
-		else if(collided.gameObject.tag == "Default")
-		{
-			//TODO: needs testing + further implementation
-			
-			//checking if we just left the floor, not a wall
-			/*if(collided.contacts.Length > 0)	//check to make sure it wasn't already destroyed or something
-			{
-				for(int i = 0; i < collided.contacts.Length; i++)
-				{
-					ContactPoint contact = collided.contacts[i];
-					if(Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
-					{
-						//left the floor
-						m_MoveState = MoveState.Airborne;
-						break;
-					}
-				}
-			}*/
-		}
 	}
 	
 	private void StateChanged(MoveState newState)
 	{
 		if(newState == MoveState.Grounded)
 		{
-			thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, 0, thisRigidbody.velocity.z);
+			thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, 0, 0);
 		}
 		else if(newState == MoveState.Airborne)
 		{
@@ -405,7 +342,7 @@ public class CustomCharacterController : MonoBehaviour {
 		}
 		else if(newState == MoveState.WallStuck)
 		{
-			thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, 0, thisRigidbody.velocity.z);
+			thisRigidbody.velocity = Vector3.zero;
 		}
 	}
 	
@@ -469,22 +406,20 @@ public class CustomCharacterController : MonoBehaviour {
 			thisRigidbody.velocity += Vector3.Lerp(horizontalVelocity, (cameraTransform.right * maxSpeed), acceleration * timeStep * maxSpeed);
 		}
 	}
+	
+	//gravity system: caps max falling speed to be same as max jumping speed
+	void ApplyGravity(float velocityCap, float currentGravity)
+	{
+		if(thisRigidbody.velocity.y > -velocityCap)
+		{
+			thisRigidbody.velocity += new Vector3(0, -currentGravity, 0);
+		}
+		if(thisRigidbody.velocity.y <= -velocityCap)
+		{
+			thisRigidbody.velocity = new Vector3(thisRigidbody.velocity.x, -velocityCap, thisRigidbody.velocity.z);
+		}
+		
+		return;
+	}
 }
-
-
-/*
- * if UN-collided with Ground
- * 		if already grounded
- * 			-NOT jumped: would be airborne already
- * 			-just fell off ground platform (normative): set to airborne
- * 			-just moved away from low-hanging platform: stay grounded
- * 			set airborne, only if platform was at feet
- * 		if airborne
- * 			-just left ground by jumping: stay airborne
- * 			-just left wall by walljumping: stay airborne
- * 			-just fell off ground (normative)
- * 			who cares
- * 		if wallslide
- * 			-
- */
 
