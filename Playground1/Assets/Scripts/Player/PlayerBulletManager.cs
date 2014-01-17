@@ -89,4 +89,10 @@ public class PlayerBulletManager {
 		
 		Debug.Log("Bullet removed. Current bullet count = " + m_bullets.Count + " / " + u_maxBullets);
 	}
+	
+	//changes current bullet data to match that of the new player gun
+	/*public void GunChanged(Gun newGun)
+	{
+		
+	}*/
 }
