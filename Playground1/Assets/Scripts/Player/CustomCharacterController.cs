@@ -64,6 +64,20 @@ public class CustomCharacterController : MonoBehaviour {
 	private bool m_hasControl = true;
 	
 	//Shooting
+	private PlayerBulletManager m_bulletManager;
+	private PlayerBulletManager bulletManager
+	{
+		get
+		{
+			if(m_bulletManager == null)
+			{
+				//get instance of bullet manager
+				m_bulletManager = PlayerBulletManager.getInstance();
+			}
+			//return instance of BulletManager
+			return m_bulletManager;
+		}
+	}
 	public GameObject u_bullet;
 	public float u_bulletSpeed = 1f;
 	
@@ -90,7 +104,6 @@ public class CustomCharacterController : MonoBehaviour {
 		Vector3 utilVect = new Vector3(((BoxCollider)(this.collider)).size.x * thisTransform.localScale.x / 2f, ((BoxCollider)(this.collider)).size.y * thisTransform.localScale.y / 2f, 0);
 		utilVect = utilVect.normalized;
 		m_dProdLimit = utilVect.y;
-		
 		
 	}
 	
@@ -223,7 +236,7 @@ public class CustomCharacterController : MonoBehaviour {
 			target.z = 0;	//only moving in x-y plane
 			
 			target = Vector3.Normalize(target);
-			GameObject newBullet = (GameObject)Instantiate(u_bullet);
+			/*GameObject newBullet = (GameObject)Instantiate(u_bullet);
 			newBullet.transform.position = thisTransform.position;
 			Bullet bulletScript = (Bullet)(newBullet.GetComponent(typeof(Bullet)));
 			if(!m_facingLeft)
@@ -231,9 +244,10 @@ public class CustomCharacterController : MonoBehaviour {
 			else
 				bulletScript.m_speed = u_bulletSpeed;
 			
-			bulletScript.m_direction = target;
+			bulletScript.m_direction = target;*/
 			
 			//TODO: bullet manager
+			bulletManager.SpawnBullet(thisTransform.position, target, u_bullet);
 		}
 	}
 	
@@ -314,7 +328,6 @@ public class CustomCharacterController : MonoBehaviour {
 					//special case for wallslide: just fell off side of ground platform, has not jumped
 					m_MoveState = MoveState.Airborne;
 					
-					//TODO: Fix Spiderman Error
 				}
 				else
 				{

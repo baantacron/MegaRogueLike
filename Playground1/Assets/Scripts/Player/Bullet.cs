@@ -5,7 +5,7 @@ using System.Collections;
 public class Bullet : MonoBehaviour {
 	//assumption: this object moves along forward axis
 	
-	public float m_speed;
+	public double m_speed;
 	public Vector3 m_direction;
 	
 	//die after a bit
@@ -25,12 +25,12 @@ public class Bullet : MonoBehaviour {
 		
 		m_timeToDie = Time.time + u_timeToLive;
 		
-		//handle facing
+		//handle facing?
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		thisTransform.position += m_direction * m_speed;
+		thisTransform.position += m_direction * (float)m_speed;
 		
 		if(Time.time >= m_timeToDie)
 		{
@@ -41,6 +41,8 @@ public class Bullet : MonoBehaviour {
 	void OnCollisionEnter(Collision collided)
 	{
 		//yup, just die
+		//send event for manager
+		Messenger.Broadcast<Bullet>("playerBulletDestroyedEvt", this);
 		Destroy(this.gameObject);
 	}
 }
