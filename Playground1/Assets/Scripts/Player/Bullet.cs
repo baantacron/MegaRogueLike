@@ -9,7 +9,7 @@ public class Bullet : MonoBehaviour {
 	public Vector3 m_direction;
 	
 	//die after a bit
-	public float u_timeToLive = 3f;
+	public float u_timeToLive = 1.5f;
 	private float m_timeToDie;
 	
 	//efficiency variables
@@ -24,6 +24,7 @@ public class Bullet : MonoBehaviour {
 		thisRigidbody.useGravity = false;
 		
 		m_timeToDie = Time.time + u_timeToLive;
+		Debug.Log("Current Time: " + Time.time + "\nTime to Die: " + m_timeToDie);
 		
 		//handle facing?
 	}
@@ -34,14 +35,19 @@ public class Bullet : MonoBehaviour {
 		
 		if(Time.time >= m_timeToDie)
 		{
-			Destroy(this.gameObject);
+			KillSelf();
 		}
 	}
 	
 	void OnCollisionEnter(Collision collided)
 	{
 		//yup, just die
-		//send event for manager
+		KillSelf();
+	}
+	
+	//pretty self explanatory, but it also sends an event to the bulletmanager
+	void KillSelf()
+	{
 		Messenger.Broadcast<Bullet>("playerBulletDestroyedEvt", this);
 		Destroy(this.gameObject);
 	}
